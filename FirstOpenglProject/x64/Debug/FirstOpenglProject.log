@@ -1,4 +1,5 @@
-﻿  main.cpp
+﻿  Application.cpp
+D:\Code\computer_graphic_series\FirstOpenglProject\FirstOpenglProject\src\Application.cpp(39,24): warning C4267: '=': conversion from 'size_t' to 'GLint', possible loss of data
   FirstOpenglProject.vcxproj -> D:\Code\computer_graphic_series\FirstOpenglProject\x64\Debug\FirstOpenglProject.exe
   'pwsh.exe' is not recognized as an internal or external command,
   operable program or batch file.
