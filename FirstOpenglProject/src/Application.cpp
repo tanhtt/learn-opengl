@@ -2,18 +2,30 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <string.h>
+#include <cmath>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 
 const GLint WIDTH = 800, HEIGHT = 600;
 
-GLuint VAO, VBO, shader;
+GLuint VAO, VBO, shader, uniformModel;
+
+bool direction = true;
+float triOffset = 0.0f;
+float triMaxOffset = 0.7f;
+float triIncrement = 0.0005f;
 
 // Vertex Shader
 static const char* vShader = R"(
 #version 330
 layout (location = 0) in vec3 position;
+uniform mat4 model;
 void main()
 {
-	gl_Position = vec4(position.x, position.y, position.z, 1.0);
+	gl_Position = model * vec4(position.x, position.y, position.z, 1.0);
 }
 )";
 
@@ -86,6 +98,8 @@ void CompileShader() {
 		return;
 	}
 
+	//uniformModel = glGetUniformLocation(shader, "xMove");
+	uniformModel = glGetUniformLocation(shader, "model");
 }
 
 void CreateTriangle() {
@@ -161,11 +175,28 @@ int main() {
 		// Check for events
 		glfwPollEvents();
 
+		if (direction) {
+			triOffset += triIncrement;
+		}
+		else {
+			triOffset -= triIncrement;
+		}
+
+		if (abs(triOffset) >= triMaxOffset) {
+			direction = !direction;
+		}
+
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Set background color to black
 		// Clear the color buffer
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(shader);
+
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, glm::vec3(triOffset, triOffset, 0.0f));
+
+		//glUniform1f(uniformModel, triOffset);
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 
 		glBindVertexArray(VAO);
 
