@@ -21,6 +21,11 @@ float triIncrement = 0.0005f;
 
 float curAngle = 0.0f;
 
+bool sizeDir = true;
+float curSize = 0.4f;
+float maxSize = .8f;
+float minSize = .1f;
+
 // Vertex Shader
 static const char* vShader = R"(
 #version 330
@@ -28,7 +33,7 @@ layout (location = 0) in vec3 position;
 uniform mat4 model;
 void main()
 {
-	gl_Position = model * vec4(position.x, position.y, position.z, 1.0);
+	gl_Position = model * vec4(position, 1.0);
 }
 )";
 
@@ -194,6 +199,17 @@ int main() {
 			curAngle -= 0.01f;
 		}
 
+		if (sizeDir) {
+			curSize += 0.0001f;
+		}
+		else {
+			curSize -= 0.0001f;
+		}
+
+		if (curSize >= maxSize || curSize <= minSize) {
+			sizeDir = !sizeDir;
+		}
+
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Set background color to black
 		// Clear the color buffer
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -203,6 +219,8 @@ int main() {
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, glm::vec3(triOffset, triOffset, 0.0f));
 		model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::scale(model, glm::vec3(curSize, curSize, 1.0f));
+
 
 		//glUniform1f(uniformModel, triOffset);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
