@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <cmath>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <sstream>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -46,6 +50,39 @@ void main()
 }
 )";
 
+struct ShaderProgrammSource {
+	std::string VertexSource;
+	std::string FragmentSource;
+};
+
+static ShaderProgrammSource ParseShader(const std::string& filePath) {
+	std::ifstream stream(filePath);
+
+	enum class ShaderType {
+		NONE = -1, VERTEX = 0, FRAGMENT = 1
+	};
+
+	std::string line;
+	std::stringstream ss[2];
+	ShaderType type = ShaderType::NONE;
+
+	while (getline(stream, line)) {
+		if (line.find("#shader") != std::string::npos) {
+			if (line.find("vertex") != std::string::npos) {
+				type = ShaderType::VERTEX;
+			}
+			else if (line.find("fragment") != std::string::npos) {
+				type = ShaderType::FRAGMENT;
+			}
+		}
+		else {
+			ss[(int)type] << line << '\n';
+		}
+	}
+
+	return { ss[0].str(), ss[1].str()};
+}
+
 void AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderType) {
 	GLuint theShader = glCreateShader(shaderType);
 	if (!theShader) {
@@ -82,8 +119,10 @@ void CompileShader() {
 		return;
 	}
 
-	AddShader(shader, vShader, GL_VERTEX_SHADER);
-	AddShader(shader, fShader, GL_FRAGMENT_SHADER);
+	ShaderProgrammSource source = ParseShader("res/shaders/Basic.shader");
+
+	AddShader(shader, source.VertexSource.c_str(), GL_VERTEX_SHADER);
+	AddShader(shader, source.FragmentSource.c_str(), GL_FRAGMENT_SHADER);
 
 	GLint result = 0;
 	GLchar eLog[1024] = { 0 };
@@ -120,11 +159,11 @@ void CreateTriangle() {
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
-	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &VBO); // *VBO = ID (assign unique ID for VBO)
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
