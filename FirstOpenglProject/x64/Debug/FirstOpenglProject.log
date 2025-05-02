@@ -1,5 +1,10 @@
 ﻿  Application.cpp
-D:\Code\computer_graphic_series\FirstOpenglProject\FirstOpenglProject\src\Application.cpp(76,24): warning C4267: '=': conversion from 'size_t' to 'GLint', possible loss of data
+D:\Code\computer_graphic_series\FirstOpenglProject\FirstOpenglProject\src\Application.cpp(79,24): warning C4267: '=': conversion from 'size_t' to 'GLint', possible loss of data
+  IndexBuffer.cpp
+  Renderer.cpp
+  VertexBuffer.cpp
+  Generating Code...
+glew32sd.lib(glew.obj) : warning LNK4099: PDB '' was not found with 'glew32sd.lib(glew.obj)' or at ''; linking object as if no debug info
   FirstOpenglProject.vcxproj -> D:\Code\computer_graphic_series\FirstOpenglProject\x64\Debug\FirstOpenglProject.exe
   'pwsh.exe' is not recognized as an internal or external command,
   operable program or batch file.

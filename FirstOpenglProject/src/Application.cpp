@@ -12,6 +12,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+
 
 const GLint WIDTH = 800, HEIGHT = 600;
 const float toRadians = 3.14159265f / 180.0f;
@@ -140,10 +143,8 @@ void CreateTriangle() {
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
-	glGenBuffers(1, &VBO); // *VBO = ID (assign unique ID for VBO)
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
+	VertexBuffer vb(vertices, 6 * sizeof(float));
+	
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 	glEnableVertexAttribArray(0);
 
