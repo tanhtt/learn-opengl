@@ -12,6 +12,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 
@@ -265,7 +266,7 @@ int main() {
 
 		glBindVertexArray(VAO);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 		
 		glBindVertexArray(0);
 
