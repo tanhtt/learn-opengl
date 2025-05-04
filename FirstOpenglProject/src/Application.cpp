@@ -15,12 +15,15 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
+#include "VertexBufferLayout.h"
 
 
 const GLint WIDTH = 800, HEIGHT = 600;
 const float toRadians = 3.14159265f / 180.0f;
 
 GLuint VAO, VBO, shader, uniformModel;
+VertexBuffer* vb = nullptr;
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -104,6 +107,8 @@ void CompileShader() {
 	}
 
 	ShaderProgrammSource source = ParseShader("res/shaders/Basic.shader");
+	//std::cout << "Vertex Shader:\n" << source.VertexSource << std::endl;
+	//std::cout << "Fragment Shader:\n" << source.FragmentSource << std::endl;
 
 	AddShader(shader, source.VertexSource.c_str(), GL_VERTEX_SHADER);
 	AddShader(shader, source.FragmentSource.c_str(), GL_FRAGMENT_SHADER);
@@ -129,29 +134,34 @@ void CompileShader() {
 		return;
 	}
 
-	//uniformModel = glGetUniformLocation(shader, "xMove");
-	uniformModel = glGetUniformLocation(shader, "model");
+	//uniformModel = glGetUniformLocation(shader, "model");
 
 }
 
-void CreateTriangle() {
+void CreateTriangle(VertexArray &va) {
 	GLfloat vertices[] = {
 		-0.5f, -0.5f, 0.0f,
 		 0.5f, -0.5f, 0.0f,
 		 0.0f,  0.5f, 0.0f
 	};
 
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
+	//VertexBuffer vb(vertices, 9 * sizeof(float));
+	vb = new VertexBuffer(vertices, 9 * sizeof(float));
+	VertexBufferLayout layout;
+	layout.Push<float>(3);
+	va.AddBuffer(*vb, layout);
 
-	VertexBuffer vb(vertices, 6 * sizeof(float));
-	
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
+	//glGenVertexArrays(1, &VAO);
+	//glBindVertexArray(VAO);
+	//std::cout << "VAO: " << VAO << std::endl;
+	//
+	//VertexBuffer vb(vertices, 6 * sizeof(float));
+	//
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+	//glEnableVertexAttribArray(0);
+	//
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glBindVertexArray(0);
 }
 
 int main() {
@@ -199,7 +209,9 @@ int main() {
 	// Set viewport size
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
-	CreateTriangle();
+	VertexArray va;
+
+	CreateTriangle(va);
 	CompileShader();
 
 	float r = 0.0f;
@@ -210,50 +222,23 @@ int main() {
 		// Check for events
 		glfwPollEvents();
 
-		if (direction) {
-			triOffset += triIncrement;
-		}
-		else {
-			triOffset -= triIncrement;
-		}
-
-		if (abs(triOffset) >= triMaxOffset) {
-			direction = !direction;
-		}
-
-		curAngle += 0.01f;
-		if (curAngle > 360.0f) {
-			curAngle -= 0.01f;
-		}
-
-		if (sizeDir) {
-			curSize += 0.0001f;
-		}
-		else {
-			curSize -= 0.0001f;
-		}
-
-		if (curSize >= maxSize || curSize <= minSize) {
-			sizeDir = !sizeDir;
-		}
-
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Set background color to black
 		// Clear the color buffer
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUseProgram(shader);
+		GLCall(glUseProgram(shader));
 
-		glm::mat4 model(1.0f);
-		model = glm::translate(model, glm::vec3(triOffset, triOffset, 0.0f));
-		model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::scale(model, glm::vec3(curSize, curSize, 1.0f));
+		//glm::mat4 model(1.0f);
+		//model = glm::translate(model, glm::vec3(triOffset, triOffset, 0.0f));
+		//model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		//model = glm::scale(model, glm::vec3(curSize, curSize, 1.0f));
 
 
 		//glUniform1f(uniformModel, triOffset);
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		//GLCall(glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model)));
 
 		int location = glGetUniformLocation(shader, "u_Color");
-		glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
+		GLCall(glUniform4f(location, 1.0f, 0.0f, 0.0f, 1.0f));
 
 		if (r < 0.0f) {
 			increment = 0.5f;
@@ -264,13 +249,12 @@ int main() {
 
 		r += increment;
 
-		glBindVertexArray(VAO);
+		va.Bind();
+		//glBindVertexArray(VAO);
 
 		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
-		
-		glBindVertexArray(0);
 
-		glUseProgram(0);
+		GLCall(glUseProgram(0));
 
 		// Swap the screen buffers
 		glfwSwapBuffers(window);

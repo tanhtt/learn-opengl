@@ -1,6 +1,7 @@
 #include "VertexBuffer.h"
 #include "GL/glew.h"
 #include "Renderer.h"
+#include "iostream"
 
 VertexBuffer::VertexBuffer(const void* data, unsigned int size)
 {
@@ -17,6 +18,7 @@ VertexBuffer::~VertexBuffer()
 void VertexBuffer::Bind() const
 {
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_RendererID));
+	std::cout << "API: " << m_RendererID << std::endl;
 }
 
 void VertexBuffer::Unbind() const
