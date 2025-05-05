@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+﻿#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,6 +17,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
+#include "Shader.h"
 
 
 const GLint WIDTH = 800, HEIGHT = 600;
@@ -24,6 +25,7 @@ const float toRadians = 3.14159265f / 180.0f;
 
 GLuint VAO, VBO, shader, uniformModel;
 VertexBuffer* vb = nullptr;
+IndexBuffer* ib = nullptr;
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -37,131 +39,24 @@ float curSize = 0.4f;
 float maxSize = .8f;
 float minSize = .1f;
 
-struct ShaderProgrammSource {
-	std::string VertexSource;
-	std::string FragmentSource;
-};
-
-static ShaderProgrammSource ParseShader(const std::string& filePath) {
-	std::ifstream stream(filePath);
-
-	enum class ShaderType {
-		NONE = -1, VERTEX = 0, FRAGMENT = 1
-	};
-
-	std::string line;
-	std::stringstream ss[2];
-	ShaderType type = ShaderType::NONE;
-
-	while (getline(stream, line)) {
-		if (line.find("#shader") != std::string::npos) {
-			if (line.find("vertex") != std::string::npos) {
-				type = ShaderType::VERTEX;
-			}
-			else if (line.find("fragment") != std::string::npos) {
-				type = ShaderType::FRAGMENT;
-			}
-		}
-		else {
-			ss[(int)type] << line << '\n';
-		}
-	}
-
-	return { ss[0].str(), ss[1].str()};
-}
-
-void AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderType) {
-	GLuint theShader = glCreateShader(shaderType);
-	if (!theShader) {
-		printf("Error creating shader type %d\n", shaderType);
-		return;
-	}
-
-	const GLchar* theCode[1];
-	theCode[0] = shaderCode;
-	GLint codeLength[1];
-	codeLength[0] = strlen(shaderCode);
-
-	glShaderSource(theShader, 1, theCode, codeLength);
-	glCompileShader(theShader);
-
-	GLint result = 0;
-	GLchar eLog[1024] = { 0 };
-
-	glGetShaderiv(theShader, GL_COMPILE_STATUS, &result);
-
-	if (!result) {
-		glGetProgramInfoLog(theShader, sizeof(eLog), NULL, eLog);
-		printf("Error compiling the %d shader: %s \n", shaderType, eLog);
-		return;
-	}
-
-	glAttachShader(theProgram, theShader);
-}
-
-void CompileShader() {
-	shader = glCreateProgram();
-	if (!shader) {
-		printf("Error creating shader program\n");
-		return;
-	}
-
-	ShaderProgrammSource source = ParseShader("res/shaders/Basic.shader");
-	//std::cout << "Vertex Shader:\n" << source.VertexSource << std::endl;
-	//std::cout << "Fragment Shader:\n" << source.FragmentSource << std::endl;
-
-	AddShader(shader, source.VertexSource.c_str(), GL_VERTEX_SHADER);
-	AddShader(shader, source.FragmentSource.c_str(), GL_FRAGMENT_SHADER);
-
-	GLint result = 0;
-	GLchar eLog[1024] = { 0 };
-
-	glLinkProgram(shader);
-	glGetProgramiv(shader, GL_LINK_STATUS, &result);
-
-	if (!result) {
-		glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
-		printf("Error linking program: '%s'\n", eLog);
-		return;
-	}
-
-	glValidateProgram(shader);
-	glGetProgramiv(shader, GL_VALIDATE_STATUS, &result);
-
-	if (!result) {
-		glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
-		printf("Error validating program: '%s'\n", eLog);
-		return;
-	}
-
-	//uniformModel = glGetUniformLocation(shader, "model");
-
-}
-
 void CreateTriangle(VertexArray &va) {
 	GLfloat vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		 0.5f, -0.5f, 0.0f,
-		 0.0f,  0.5f, 0.0f
+		 0.5f,  0.5f, 0.0f,  // top right
+		 0.5f, -0.5f, 0.0f,  // bottom right
+		-0.5f, -0.5f, 0.0f,  // bottom left
+		-0.5f,  0.5f, 0.0f   // top left 
 	};
 
-	//VertexBuffer vb(vertices, 9 * sizeof(float));
-	vb = new VertexBuffer(vertices, 9 * sizeof(float));
+	unsigned int indices[] = {
+		0, 1, 3,   // first triangle
+		1, 2, 3    // second triangle
+	};
+
+	vb = new VertexBuffer(vertices, 12 * sizeof(float));
+	ib = new IndexBuffer(indices, 6);
 	VertexBufferLayout layout;
 	layout.Push<float>(3);
 	va.AddBuffer(*vb, layout);
-
-	//glGenVertexArrays(1, &VAO);
-	//glBindVertexArray(VAO);
-	//std::cout << "VAO: " << VAO << std::endl;
-	//
-	//VertexBuffer vb(vertices, 6 * sizeof(float));
-	//
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-	//glEnableVertexAttribArray(0);
-	//
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//glBindVertexArray(0);
 }
 
 int main() {
@@ -212,10 +107,16 @@ int main() {
 	VertexArray va;
 
 	CreateTriangle(va);
-	CompileShader();
+	Shader shader("res/shaders/Basic.shader");
+	shader.Bind();
+	shader.SetUniform4f("u_Color", 0.3f, 0.3f, 0.5f, 1.0f);
 
-	float r = 0.0f;
-	float increment = 0.5f;
+	va.Unbind();
+	shader.Unbind();
+	vb->Unbind();
+	ib->Unbind();
+
+	GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
@@ -226,37 +127,18 @@ int main() {
 		// Clear the color buffer
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		GLCall(glUseProgram(shader));
+		shader.Bind();
 
-		//glm::mat4 model(1.0f);
-		//model = glm::translate(model, glm::vec3(triOffset, triOffset, 0.0f));
-		//model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
-		//model = glm::scale(model, glm::vec3(curSize, curSize, 1.0f));
+		float time = glfwGetTime(); // Lấy thời gian hiện tại
+		float r = (sin(time * 0.5f) + 1.0f) * 0.5f;
 
-
-		//glUniform1f(uniformModel, triOffset);
-		//GLCall(glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model)));
-
-		int location = glGetUniformLocation(shader, "u_Color");
-		GLCall(glUniform4f(location, 1.0f, 0.0f, 0.0f, 1.0f));
-
-		if (r < 0.0f) {
-			increment = 0.5f;
-		}
-		else if (r > 1.0f) {
-			increment = -0.5f;
-		}
-
-		r += increment;
+		shader.SetUniform4f("u_Color", r, .3f, .5f, 1.0f);
 
 		va.Bind();
-		//glBindVertexArray(VAO);
+		ib->Bind();
 
-		GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
 
-		GLCall(glUseProgram(0));
-
-		// Swap the screen buffers
 		glfwSwapBuffers(window);
 	}
 	return 0;
