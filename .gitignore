@@ -1,32 +1,16 @@
-# Prerequisites
-*.d
+# Các thư mục IDE và build
+.vs/
+x64/
+packages/
+FirstOpenGLProject/obj/
+FirstOpenGLProject/bin/
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Các file cụ thể của Visual Studio
+*.vcxproj.user
+*.suo
+*.sln.docstates
+*.vssscc
+*.vspscc
 
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+# Các file tạm thời và cache khác nếu có
+# Thêm các mẫu file hoặc thư mục khác nếu bạn thấy chúng không cần thiết
