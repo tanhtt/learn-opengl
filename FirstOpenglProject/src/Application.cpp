@@ -18,6 +18,7 @@
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
 #include "Shader.h"
+#include "Texture.h"
 
 
 const GLint WIDTH = 800, HEIGHT = 600;
@@ -41,21 +42,25 @@ float minSize = .1f;
 
 void CreateTriangle(VertexArray &va) {
 	GLfloat vertices[] = {
-		 0.5f,  0.5f, 0.0f,  // top right
-		 0.5f, -0.5f, 0.0f,  // bottom right
-		-0.5f, -0.5f, 0.0f,  // bottom left
-		-0.5f,  0.5f, 0.0f   // top left 
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+		 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+		-0.5f,  0.5f, 0.0f, 0.0f, 1.0f
 	};
 
 	unsigned int indices[] = {
-		0, 1, 3,   // first triangle
-		1, 2, 3    // second triangle
+		0, 1, 2,   // first triangle
+		2, 3, 0    // second triangle
 	};
 
-	vb = new VertexBuffer(vertices, 12 * sizeof(float));
+	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	GLCall(glEnable(GL_BLEND));
+
+	vb = new VertexBuffer(vertices, 4 * 5 * sizeof(float));
 	ib = new IndexBuffer(indices, 6);
 	VertexBufferLayout layout;
 	layout.Push<float>(3);
+	layout.Push<float>(2);
 	va.AddBuffer(*vb, layout);
 }
 
@@ -111,12 +116,18 @@ int main() {
 	shader.Bind();
 	shader.SetUniform4f("u_Color", 0.3f, 0.3f, 0.5f, 1.0f);
 
+	Texture texture("res/textures/EddLogo.png");
+	texture.Bind();
+	shader.SetUniform1i("u_Texture", 0);
+
 	va.Unbind();
 	shader.Unbind();
 	vb->Unbind();
 	ib->Unbind();
 
-	GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+	Renderer renderer;
+
+	//GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
@@ -125,7 +136,7 @@ int main() {
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Set background color to black
 		// Clear the color buffer
-		glClear(GL_COLOR_BUFFER_BIT);
+		
 
 		shader.Bind();
 
@@ -134,10 +145,7 @@ int main() {
 
 		shader.SetUniform4f("u_Color", r, .3f, .5f, 1.0f);
 
-		va.Bind();
-		ib->Bind();
-
-		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+		renderer.Draw(va, *ib, shader);
 
 		glfwSwapBuffers(window);
 	}
