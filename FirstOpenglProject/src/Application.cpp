@@ -53,8 +53,8 @@ void CreateTriangle(VertexArray &va) {
 		2, 3, 0    // second triangle
 	};
 
-	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	GLCall(glEnable(GL_BLEND));
+	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 	vb = new VertexBuffer(vertices, 4 * 5 * sizeof(float));
 	ib = new IndexBuffer(indices, 6);
@@ -114,11 +114,15 @@ int main() {
 	CreateTriangle(va);
 	Shader shader("res/shaders/Basic.shader");
 	shader.Bind();
-	shader.SetUniform4f("u_Color", 0.3f, 0.3f, 0.5f, 1.0f);
+	shader.SetUniform4f("u_Color", 1.0, 1.0f, 1.0f, 1.0f);
 
-	Texture texture("res/textures/EddLogo.png");
+	Texture texture("res/textures/star.png");
 	texture.Bind();
 	shader.SetUniform1i("u_Texture", 0);
+
+	
+	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	//glDepthMask(GL_FALSE);
 
 	va.Unbind();
 	shader.Unbind();
@@ -134,7 +138,7 @@ int main() {
 		// Check for events
 		glfwPollEvents();
 
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Set background color to black
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Set background color to black
 		// Clear the color buffer
 		
 
@@ -143,7 +147,7 @@ int main() {
 		float time = glfwGetTime(); // Lấy thời gian hiện tại
 		float r = (sin(time * 0.5f) + 1.0f) * 0.5f;
 
-		shader.SetUniform4f("u_Color", r, .3f, .5f, 1.0f);
+		shader.SetUniform4f("u_Color", r, .5f, .3f, 1.0f);
 
 		renderer.Draw(va, *ib, shader);
 
