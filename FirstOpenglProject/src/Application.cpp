@@ -10,7 +10,6 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "Renderer.h"
 #include "VertexBuffer.h"
@@ -112,11 +111,14 @@ int main() {
 	VertexArray va;
 
 	CreateTriangle(va);
+	glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+
 	Shader shader("res/shaders/Basic.shader");
 	shader.Bind();
 	shader.SetUniform4f("u_Color", 1.0, 1.0f, 1.0f, 1.0f);
+	shader.SetUniformMat4f("u_MVP", proj);
 
-	Texture texture("res/textures/star.png");
+	Texture texture("res/textures/EddLogo.png");
 	texture.Bind();
 	shader.SetUniform1i("u_Texture", 0);
 
