@@ -20,7 +20,7 @@
 #include "Texture.h"
 
 
-const GLint WIDTH = 800, HEIGHT = 600;
+const GLint WIDTH = 960, HEIGHT = 540;
 const float toRadians = 3.14159265f / 180.0f;
 
 GLuint VAO, VBO, shader, uniformModel;
@@ -40,11 +40,18 @@ float maxSize = .8f;
 float minSize = .1f;
 
 void CreateTriangle(VertexArray &va) {
-	GLfloat vertices[] = {
+	/*GLfloat vertices[] = {
 		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
 		 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
 		 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
 		-0.5f,  0.5f, 0.0f, 0.0f, 1.0f
+	};*/
+
+	GLfloat vertices[] = {
+		100.0f, 100.0f, 0.0f, 0.0f, 0.0f,
+		200.0f, 100.0f, 0.0f, 1.0f, 0.0f,
+		200.0f, 200.0f, 0.0f, 1.0f, 1.0f,
+		100.0f, 200.0f, 0.0f, 0.0f, 1.0f
 	};
 
 	unsigned int indices[] = {
@@ -111,20 +118,21 @@ int main() {
 	VertexArray va;
 
 	CreateTriangle(va);
-	glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+	//glm::mat4 proj = glm::ortho(-3.0f, 3.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+	glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
+	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
+
+	glm::mat4 mvp = proj * view * model;
 
 	Shader shader("res/shaders/Basic.shader");
 	shader.Bind();
 	shader.SetUniform4f("u_Color", 1.0, 1.0f, 1.0f, 1.0f);
-	shader.SetUniformMat4f("u_MVP", proj);
+	shader.SetUniformMat4f("u_MVP", mvp);
 
 	Texture texture("res/textures/EddLogo.png");
 	texture.Bind();
 	shader.SetUniform1i("u_Texture", 0);
-
-	
-	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	//glDepthMask(GL_FALSE);
 
 	va.Unbind();
 	shader.Unbind();
@@ -132,8 +140,6 @@ int main() {
 	ib->Unbind();
 
 	Renderer renderer;
-
-	//GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
