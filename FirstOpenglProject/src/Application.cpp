@@ -124,7 +124,7 @@ int main() {
 	CreateTriangle(va);
 	//glm::mat4 proj = glm::ortho(-3.0f, 3.0f, -1.5f, 1.5f, -1.0f, 1.0f);
 	glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
+	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 	
 
 	Shader shader("res/shaders/Basic.shader");
@@ -155,7 +155,8 @@ int main() {
 	bool show_another_window = false;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-	glm::vec3 translation(200, 200, 0);
+	glm::vec3 translationA(200, 200, 0);
+	glm::vec3 translationB(50, 200, 0);
 
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
@@ -169,36 +170,38 @@ int main() {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
-
-		glm::mat4 mvp = proj * view * model;
 
 		float time = glfwGetTime(); // Lấy thời gian hiện tại
 		float r = (sin(time * 0.5f) + 1.0f) * 0.5f;
 
-		shader.Bind();
-		shader.SetUniform4f("u_Color", r, .5f, .3f, 1.0f);
-		shader.SetUniformMat4f("u_MVP", mvp);
+		{
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+			glm::mat4 mvp = proj * view * model;
+			shader.Bind();
+			shader.SetUniform4f("u_Color", r, .5f, .3f, 1.0f);
+			shader.SetUniformMat4f("u_MVP", mvp);
 
-		renderer.Draw(va, *ib, shader);
+			renderer.Draw(va, *ib, shader);
+		}
+
+		{
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
+			glm::mat4 mvp = proj * view * model;
+			shader.Bind();
+			shader.SetUniform4f("u_Color", r, .3f, .5f, 0.5f);
+			shader.SetUniformMat4f("u_MVP", mvp);
+
+			renderer.Draw(va, *ib, shader);
+		}
 
 		{
 			static float f = 0.0f;
 			static int counter = 0;
 
-			ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+			ImGui::Begin("Inspector:");
 
-			ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-			ImGui::Checkbox("Another Window", &show_another_window);
-
-			ImGui::SliderFloat3("Translation", &translation.x, 0.0f, 960.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-				counter++;
-			ImGui::SameLine();
-			ImGui::Text("counter = %d", counter);
+			ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 960.0f);
+			ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, 960.0f);
 
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::End();
