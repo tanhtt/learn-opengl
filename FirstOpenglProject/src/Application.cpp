@@ -23,6 +23,8 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+float MovingX(GLFWwindow* window, float amount);
+float MovingY(GLFWwindow* window, float amount);
 
 const GLint WIDTH = 960, HEIGHT = 540;
 const float toRadians = 3.14159265f / 180.0f;
@@ -194,6 +196,9 @@ int main() {
 			renderer.Draw(va, *ib, shader);
 		}
 
+		translationA.x += MovingX(window, 1);
+		translationA.y += MovingY(window, 1);
+
 		{
 			static float f = 0.0f;
 			static int counter = 0;
@@ -219,5 +224,25 @@ int main() {
 
 	glfwTerminate();
 
+	return 0;
+}
+
+float MovingX(GLFWwindow* window, float amount) {
+	if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
+		return amount;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_LEFT)) {
+		return -amount;
+	}
+	return 0;
+}
+
+float MovingY(GLFWwindow* window, float amount) {
+	if (glfwGetKey(window, GLFW_KEY_UP)) {
+		return amount;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+		return -amount;
+	}
 	return 0;
 }
