@@ -25,6 +25,7 @@
 
 float MovingX(GLFWwindow* window, float amount);
 float MovingY(GLFWwindow* window, float amount);
+float AdjustScale(GLFWwindow* window, float currentScale);
 
 const GLint WIDTH = 960, HEIGHT = 540;
 const float toRadians = 3.14159265f / 180.0f;
@@ -46,13 +47,6 @@ float maxSize = .8f;
 float minSize = .1f;
 
 void CreateTriangle(VertexArray &va) {
-	/*GLfloat vertices[] = {
-		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-		 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
-		-0.5f,  0.5f, 0.0f, 0.0f, 1.0f
-	};*/
-
 	GLfloat vertices[] = {
 		100.0f, 100.0f, 0.0f, 0.0f, 0.0f,
 		200.0f, 100.0f, 0.0f, 1.0f, 0.0f,
@@ -75,6 +69,11 @@ void CreateTriangle(VertexArray &va) {
 	layout.Push<float>(2);
 	va.AddBuffer(*vb, layout);
 }
+
+float scaleA = 1.0f;
+float max_scaleA = 3.0f;
+float min_scaleA = 0.2f;
+float scale_increment = 0.01f;
 
 int main() {
 	if (!glfwInit()) {
@@ -118,13 +117,11 @@ int main() {
 		return -1;
 	}
 
-	// Set viewport size
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
 	VertexArray va;
 
 	CreateTriangle(va);
-	//glm::mat4 proj = glm::ortho(-3.0f, 3.0f, -1.5f, 1.5f, -1.0f, 1.0f);
 	glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
 	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 	
@@ -157,8 +154,8 @@ int main() {
 	bool show_another_window = false;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+	
 	glm::vec3 translationA(200, 200, 0);
-	glm::vec3 translationB(50, 200, 0);
 
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
@@ -176,8 +173,10 @@ int main() {
 		float time = glfwGetTime(); // Lấy thời gian hiện tại
 		float r = (sin(time * 0.5f) + 1.0f) * 0.5f;
 
+		
 		{
 			glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+			model = glm::scale(model, glm::vec3(scaleA, scaleA, 1.0f));
 			glm::mat4 mvp = proj * view * model;
 			shader.Bind();
 			shader.SetUniform4f("u_Color", r, .5f, .3f, 1.0f);
@@ -186,18 +185,9 @@ int main() {
 			renderer.Draw(va, *ib, shader);
 		}
 
-		{
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
-			glm::mat4 mvp = proj * view * model;
-			shader.Bind();
-			shader.SetUniform4f("u_Color", r, .3f, .5f, 0.5f);
-			shader.SetUniformMat4f("u_MVP", mvp);
-
-			renderer.Draw(va, *ib, shader);
-		}
-
 		translationA.x += MovingX(window, 1);
 		translationA.y += MovingY(window, 1);
+		scaleA = AdjustScale(window, scaleA);
 
 		{
 			static float f = 0.0f;
@@ -206,7 +196,7 @@ int main() {
 			ImGui::Begin("Inspector:");
 
 			ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 960.0f);
-			ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, 960.0f);
+			ImGui::SliderFloat("Scale A", &scaleA, min_scaleA, max_scaleA);
 
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::End();
@@ -245,4 +235,14 @@ float MovingY(GLFWwindow* window, float amount) {
 		return -amount;
 	}
 	return 0;
+}
+
+float AdjustScale(GLFWwindow* window, float currentScale) {
+	if (glfwGetKey(window, GLFW_KEY_KP_ADD) || glfwGetKey(window, GLFW_KEY_EQUAL)) {
+		return std::min(currentScale + scale_increment, max_scaleA); // Phóng to
+	}
+	else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) || glfwGetKey(window, GLFW_KEY_MINUS)) {
+		return std::max(currentScale - scale_increment, min_scaleA); // Thu nhỏ
+	}
+	return currentScale;
 }
