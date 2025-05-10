@@ -26,6 +26,7 @@
 float MovingX(GLFWwindow* window, float amount);
 float MovingY(GLFWwindow* window, float amount);
 float AdjustScale(GLFWwindow* window, float currentScale);
+float Rotation(GLFWwindow* window, float currentRotation);
 
 const GLint WIDTH = 960, HEIGHT = 540;
 const float toRadians = 3.14159265f / 180.0f;
@@ -41,10 +42,15 @@ float triIncrement = 0.0005f;
 
 float curAngle = 0.0f;
 
+// Size
 bool sizeDir = true;
 float curSize = 0.4f;
 float maxSize = .8f;
 float minSize = .1f;
+
+// Rotation
+float rotate_speed = 0.5f;
+float rotationA = 0.0f;
 
 void CreateTriangle(VertexArray &va) {
 	GLfloat vertices[] = {
@@ -70,6 +76,7 @@ void CreateTriangle(VertexArray &va) {
 	va.AddBuffer(*vb, layout);
 }
 
+// Scale
 float scaleA = 1.0f;
 float max_scaleA = 3.0f;
 float min_scaleA = 0.2f;
@@ -175,7 +182,11 @@ int main() {
 
 		
 		{
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, translationA);
+			model = glm::translate(model, glm::vec3(150.0f, 150.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(rotationA), glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::translate(model, glm::vec3(-150.0f, -150.0f, 0.0f));
 			model = glm::scale(model, glm::vec3(scaleA, scaleA, 1.0f));
 			glm::mat4 mvp = proj * view * model;
 			shader.Bind();
@@ -188,6 +199,7 @@ int main() {
 		translationA.x += MovingX(window, 1);
 		translationA.y += MovingY(window, 1);
 		scaleA = AdjustScale(window, scaleA);
+		rotationA = Rotation(window, rotationA);
 
 		{
 			static float f = 0.0f;
@@ -197,6 +209,7 @@ int main() {
 
 			ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 960.0f);
 			ImGui::SliderFloat("Scale A", &scaleA, min_scaleA, max_scaleA);
+			ImGui::SliderFloat("Rotation A", &rotationA, -360.0f, 360.0f);
 
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::End();
@@ -239,10 +252,20 @@ float MovingY(GLFWwindow* window, float amount) {
 
 float AdjustScale(GLFWwindow* window, float currentScale) {
 	if (glfwGetKey(window, GLFW_KEY_KP_ADD) || glfwGetKey(window, GLFW_KEY_EQUAL)) {
-		return std::min(currentScale + scale_increment, max_scaleA); // Phóng to
+		return std::min(currentScale + scale_increment, max_scaleA);
 	}
 	else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) || glfwGetKey(window, GLFW_KEY_MINUS)) {
-		return std::max(currentScale - scale_increment, min_scaleA); // Thu nhỏ
+		return std::max(currentScale - scale_increment, min_scaleA);
 	}
 	return currentScale;
+}
+
+float Rotation(GLFWwindow* window, float currentRotation) {
+	if (glfwGetKey(window, GLFW_KEY_X)) {
+		return currentRotation + rotate_speed;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_Z)) {
+		return currentRotation - rotate_speed;
+	}
+	return currentRotation;
 }
