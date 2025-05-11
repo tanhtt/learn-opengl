@@ -18,15 +18,11 @@
 #include "VertexBufferLayout.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "InputManager.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
-
-float MovingX(GLFWwindow* window, float amount);
-float MovingY(GLFWwindow* window, float amount);
-float AdjustScale(GLFWwindow* window, float currentScale);
-float Rotation(GLFWwindow* window, float currentRotation);
 
 const GLint WIDTH = 960, HEIGHT = 540;
 const float toRadians = 3.14159265f / 180.0f;
@@ -147,6 +143,7 @@ int main() {
 	ib->Unbind();
 
 	Renderer renderer;
+	InputManager input(window);
 
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -196,10 +193,10 @@ int main() {
 			renderer.Draw(va, *ib, shader);
 		}
 
-		translationA.x += MovingX(window, 1);
-		translationA.y += MovingY(window, 1);
-		scaleA = AdjustScale(window, scaleA);
-		rotationA = Rotation(window, rotationA);
+		translationA.x += input.GetAxisX(.5f);
+		translationA.y += input.GetAxisY(.5f);
+		scaleA = input.AdjustScale(scaleA);
+		rotationA = input.AdjustRocation(rotationA);
 
 		{
 			static float f = 0.0f;
@@ -228,44 +225,4 @@ int main() {
 	glfwTerminate();
 
 	return 0;
-}
-
-float MovingX(GLFWwindow* window, float amount) {
-	if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
-		return amount;
-	}
-	else if (glfwGetKey(window, GLFW_KEY_LEFT)) {
-		return -amount;
-	}
-	return 0;
-}
-
-float MovingY(GLFWwindow* window, float amount) {
-	if (glfwGetKey(window, GLFW_KEY_UP)) {
-		return amount;
-	}
-	else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
-		return -amount;
-	}
-	return 0;
-}
-
-float AdjustScale(GLFWwindow* window, float currentScale) {
-	if (glfwGetKey(window, GLFW_KEY_KP_ADD) || glfwGetKey(window, GLFW_KEY_EQUAL)) {
-		return std::min(currentScale + scale_increment, max_scaleA);
-	}
-	else if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) || glfwGetKey(window, GLFW_KEY_MINUS)) {
-		return std::max(currentScale - scale_increment, min_scaleA);
-	}
-	return currentScale;
-}
-
-float Rotation(GLFWwindow* window, float currentRotation) {
-	if (glfwGetKey(window, GLFW_KEY_X)) {
-		return currentRotation + rotate_speed;
-	}
-	else if (glfwGetKey(window, GLFW_KEY_Z)) {
-		return currentRotation - rotate_speed;
-	}
-	return currentRotation;
 }
