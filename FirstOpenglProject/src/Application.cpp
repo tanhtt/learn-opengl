@@ -10,6 +10,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Renderer.h"
 #include "VertexBuffer.h"
@@ -29,7 +30,6 @@ const float toRadians = 3.14159265f / 180.0f;
 
 GLuint VAO, VBO, shader, uniformModel;
 VertexBuffer* vb = nullptr;
-IndexBuffer* ib = nullptr;
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -49,23 +49,54 @@ float rotate_speed = 0.5f;
 float rotationA = 0.0f;
 
 void CreateTriangle(VertexArray &va) {
-	GLfloat vertices[] = {
-		100.0f, 100.0f, 0.0f, 0.0f, 0.0f,
-		200.0f, 100.0f, 0.0f, 1.0f, 0.0f,
-		200.0f, 200.0f, 0.0f, 1.0f, 1.0f,
-		100.0f, 200.0f, 0.0f, 0.0f, 1.0f
-	};
+	float vertices[] = {
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
-	unsigned int indices[] = {
-		0, 1, 2,   // first triangle
-		2, 3, 0    // second triangle
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
 	GLCall(glEnable(GL_BLEND));
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-	vb = new VertexBuffer(vertices, 4 * 5 * sizeof(float));
-	ib = new IndexBuffer(indices, 6);
+	vb = new VertexBuffer(vertices, 36 * 5 * sizeof(float));
 	VertexBufferLayout layout;
 	layout.Push<float>(3);
 	layout.Push<float>(2);
@@ -122,27 +153,30 @@ int main() {
 
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
+	glEnable(GL_DEPTH_TEST);
+
 	VertexArray va;
 
 	CreateTriangle(va);
-	glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-	
 
 	Shader shader("res/shaders/Basic.shader");
 	shader.Bind();
-	shader.SetUniform4f("u_Color", 1.0, 1.0f, 1.0f, 1.0f);
 
-	Texture texture("res/textures/EddLogo.png");
-	texture.Bind();
-	shader.SetUniform1i("u_Texture", 0);
+	Texture texture1("res/textures/container.jpg");
+	texture1.Bind(0);
+	shader.SetUniform1i("texture1", 0);
+
+	Texture texture2("res/textures/EddLogo.png");
+	texture2.Bind(1);
+	shader.SetUniform1i("texture2", 1);
+
+	float mixValue = 0.1f; // Start with 90% texture1, 10% texture2
+	shader.SetUniform1f("mixValue", mixValue);
 
 	va.Unbind();
 	shader.Unbind();
 	vb->Unbind();
-	ib->Unbind();
 
-	Renderer renderer;
 	InputManager input(window);
 
 	ImGui::CreateContext();
@@ -158,15 +192,12 @@ int main() {
 	bool show_another_window = false;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-	
-	glm::vec3 translationA(200, 200, 0);
-
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
 		// Check for events
 		glfwPollEvents();
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		renderer.Clear();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
@@ -179,36 +210,30 @@ int main() {
 
 		
 		{
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, translationA);
-			model = glm::translate(model, glm::vec3(150.0f, 150.0f, 0.0f));
-			model = glm::rotate(model, glm::radians(rotationA), glm::vec3(0.0f, 0.0f, 1.0f));
-			model = glm::translate(model, glm::vec3(-150.0f, -150.0f, 0.0f));
-			model = glm::scale(model, glm::vec3(scaleA, scaleA, 1.0f));
-			glm::mat4 mvp = proj * view * model;
-			shader.Bind();
-			shader.SetUniform4f("u_Color", r, .5f, .3f, 1.0f);
-			shader.SetUniformMat4f("u_MVP", mvp);
+			glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+			glm::mat4 view = glm::mat4(1.0f);
+			glm::mat4 projection = glm::mat4(1.0f);
+			model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+			view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+			projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 
-			renderer.Draw(va, *ib, shader);
+			glm::mat4 mvp = projection * view * model;
+			shader.Bind();
+			shader.SetUniformMat4f("u_MVP", mvp);
+			shader.SetUniform1f("mixValue", mixValue);
+
+			texture1.Bind(0);
+			texture2.Bind(1);
+
+			va.Bind();
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-		translationA.x += input.GetAxisX(.5f);
-		translationA.y += input.GetAxisY(.5f);
-		scaleA = input.AdjustScale(scaleA);
-		rotationA = input.AdjustRocation(rotationA);
-
 		{
-			static float f = 0.0f;
-			static int counter = 0;
-
 			ImGui::Begin("Inspector:");
-
-			ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 960.0f);
-			ImGui::SliderFloat("Scale A", &scaleA, min_scaleA, max_scaleA);
-			ImGui::SliderFloat("Rotation A", &rotationA, -360.0f, 360.0f);
-
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			ImGui::SliderFloat("Texture Mix", &mixValue, 0.0f, 1.0f, "Ratio = %.2f");
+			ImGui::Text("0.0 = 100%% EddLogo, 1.0 = 100%% Container");
 			ImGui::End();
 		}
 

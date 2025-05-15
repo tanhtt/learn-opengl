@@ -8,6 +8,11 @@ Texture::Texture(const std::string& path)
 	stbi_set_flip_vertically_on_load(1);
 	m_LocalBuffer = stbi_load(path.c_str(), &m_Width, &m_Height, &m_BPP, 4);
 
+	if (!m_LocalBuffer) {
+		std::cerr << "Failed to load texture: " << path << " - Reason: " << stbi_failure_reason() << std::endl;
+		return; // Early return to avoid uploading invalid data
+	}
+
 	GLCall(glGenTextures(1, &m_RendererId));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererId));
 
