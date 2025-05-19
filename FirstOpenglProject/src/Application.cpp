@@ -51,9 +51,9 @@ float rotationA = 0.0f;
 void CreateTriangle(VertexArray &va) {
 	GLfloat vertices[] = {
 		100.0f, 100.0f, 0.0f, 0.0f, 0.0f,
-		200.0f, 100.0f, 0.0f, 1.0f, 0.0f,
-		200.0f, 200.0f, 0.0f, 1.0f, 1.0f,
-		100.0f, 200.0f, 0.0f, 0.0f, 1.0f
+		200.0f, 100.0f, 0.0f, 2.0f, 0.0f,
+		200.0f, 200.0f, 0.0f, 2.0f, 2.0f,
+		100.0f, 200.0f, 0.0f, 0.0f, 2.0f
 	};
 
 	unsigned int indices[] = {
@@ -133,9 +133,13 @@ int main() {
 	shader.Bind();
 	shader.SetUniform4f("u_Color", 1.0, 1.0f, 1.0f, 1.0f);
 
-	Texture texture("res/textures/EddLogo.png");
-	texture.Bind();
-	shader.SetUniform1i("u_Texture", 0);
+	Texture texture1("res/textures/brick.jpg");
+	texture1.Bind();
+	shader.SetUniform1i("texture1", 0);
+
+	Texture texture2("res/textures/EddLogo.png");
+	texture2.Bind();
+	shader.SetUniform1i("texture2", 1);
 
 	va.Unbind();
 	shader.Unbind();
@@ -189,6 +193,10 @@ int main() {
 			shader.Bind();
 			shader.SetUniform4f("u_Color", r, .5f, .3f, 1.0f);
 			shader.SetUniformMat4f("u_MVP", mvp);
+
+			// bind textures on corresponding texture units
+			texture1.Bind(0);
+			texture2.Bind(1);
 
 			renderer.Draw(va, *ib, shader);
 		}
