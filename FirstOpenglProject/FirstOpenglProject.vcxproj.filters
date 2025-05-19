@@ -1264,4 +1264,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\textures\container.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\textures\dirt.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\textures\EddLogo.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\textures\one_piece.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\textures\star.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\textures\vietnam.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

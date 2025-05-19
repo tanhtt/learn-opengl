@@ -551,6 +551,14 @@
     <ClInclude Include="src\VertexBuffer.h" />
     <ClInclude Include="src\VertexBufferLayout.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\textures\container.jpg" />
+    <Image Include="res\textures\dirt.png" />
+    <Image Include="res\textures\EddLogo.png" />
+    <Image Include="res\textures\one_piece.png" />
+    <Image Include="res\textures\star.png" />
+    <Image Include="res\textures\vietnam.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\glfw.3.4.0\build\native\glfw.targets" Condition="Exists('..\packages\glfw.3.4.0\build\native\glfw.targets')" />

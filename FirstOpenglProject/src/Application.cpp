@@ -162,11 +162,11 @@ int main() {
 	Shader shader("res/shaders/Basic.shader");
 	shader.Bind();
 
-	Texture texture1("res/textures/container.jpg");
+	Texture texture1("res/textures/update_dirt.png");
 	texture1.Bind(0);
 	shader.SetUniform1i("texture1", 0);
 
-	Texture texture2("res/textures/EddLogo.png");
+	Texture texture2("res/textures/container.jpg");
 	texture2.Bind(1);
 	shader.SetUniform1i("texture2", 1);
 
@@ -233,7 +233,7 @@ int main() {
 			ImGui::Begin("Inspector:");
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::SliderFloat("Texture Mix", &mixValue, 0.0f, 1.0f, "Ratio = %.2f");
-			ImGui::Text("0.0 = 100%% EddLogo, 1.0 = 100%% Container");
+			ImGui::Text("0.0 = 100%% Dirt, 1.0 = 100%% Container");
 			ImGui::End();
 		}
 
