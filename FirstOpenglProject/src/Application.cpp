@@ -51,9 +51,9 @@ float rotationA = 0.0f;
 void CreateTriangle(VertexArray &va) {
 	GLfloat vertices[] = {
 		100.0f, 100.0f, 0.0f, 0.0f, 0.0f,
-		200.0f, 100.0f, 0.0f, 2.0f, 0.0f,
-		200.0f, 200.0f, 0.0f, 2.0f, 2.0f,
-		100.0f, 200.0f, 0.0f, 0.0f, 2.0f
+		200.0f, 100.0f, 0.0f, 1.0f, 0.0f,
+		200.0f, 200.0f, 0.0f, 1.0f, 1.0f,
+		100.0f, 200.0f, 0.0f, 0.0f, 1.0f
 	};
 
 	unsigned int indices[] = {
@@ -126,7 +126,7 @@ int main() {
 
 	CreateTriangle(va);
 	glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+	glm::mat4 view = glm::mat4(1.0f);
 	
 
 	Shader shader("res/shaders/Basic.shader");
@@ -164,6 +164,15 @@ int main() {
 
 	
 	glm::vec3 translationA(200, 200, 0);
+	float mixVal = 1;
+
+	glm::vec2 localSize(100.0f, 100.0f);
+	glm::vec2 scaledSize = localSize * glm::vec2(scaleA, scaleA);
+	glm::vec2 pos(translationA.x, translationA.y);
+	glm::vec2 halfSize = scaledSize * 0.5f;
+
+	float lastime = 0.0f;
+	glm::vec2 velocity = glm::normalize(glm::vec2(rand() % 2 - 0.5f, rand() % 2 - 0.5f)) * 150.0f;
 
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
@@ -178,21 +187,37 @@ int main() {
 		ImGui::NewFrame();
 
 
-		float time = glfwGetTime(); // Lấy thời gian hiện tại
-		float r = (sin(time * 0.5f) + 1.0f) * 0.5f;
+		float currentTime = glfwGetTime();
+		float deltaTime = currentTime - lastime;
+		lastime = currentTime;
 
+		scaledSize = localSize * glm::vec2(scaleA, scaleA);
+		pos.x = translationA.x;
+		pos.y = translationA.y;
+
+		halfSize = scaledSize * 0.5f;
+
+		float left = pos.x - halfSize.x;
+		float right = pos.x + halfSize.x;
+		float bottom = pos.y - halfSize.y;
+		float top = pos.y + halfSize.y;
+		
+		if (left <= 0 || right >= WIDTH) velocity.x *= -1.0f;
+		if (bottom <= 0 || top >= HEIGHT) velocity.y *= -1.0f;
+
+		translationA += glm::vec3(velocity, 0.0f) * deltaTime;
 		
 		{
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, translationA);
-			model = glm::translate(model, glm::vec3(150.0f, 150.0f, 0.0f));
 			model = glm::rotate(model, glm::radians(rotationA), glm::vec3(0.0f, 0.0f, 1.0f));
-			model = glm::translate(model, glm::vec3(-150.0f, -150.0f, 0.0f));
 			model = glm::scale(model, glm::vec3(scaleA, scaleA, 1.0f));
+			model = glm::translate(model, glm::vec3(-150.0f, -150.0f, 0.0f));
 			glm::mat4 mvp = proj * view * model;
 			shader.Bind();
-			shader.SetUniform4f("u_Color", r, .5f, .3f, 1.0f);
+			shader.SetUniform4f("u_Color", 1.0f, .5f, .3f, 1.0f);
 			shader.SetUniformMat4f("u_MVP", mvp);
+			shader.SetUniform1f("mixVal", mixVal);
 
 			// bind textures on corresponding texture units
 			texture1.Bind(0);
@@ -215,6 +240,7 @@ int main() {
 			ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 960.0f);
 			ImGui::SliderFloat("Scale A", &scaleA, min_scaleA, max_scaleA);
 			ImGui::SliderFloat("Rotation A", &rotationA, -360.0f, 360.0f);
+			ImGui::SliderFloat("Mix Value: ", &mixVal, 0.0f, 1.0f);
 
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::End();
