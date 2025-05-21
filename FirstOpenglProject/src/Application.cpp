@@ -29,7 +29,7 @@ const float toRadians = 3.14159265f / 180.0f;
 
 GLuint VAO, VBO, shader, uniformModel;
 VertexBuffer* vb = nullptr;
-IndexBuffer* ib = nullptr;
+//IndexBuffer* ib = nullptr;
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -49,23 +49,54 @@ float rotate_speed = 0.5f;
 float rotationA = 0.0f;
 
 void CreateTriangle(VertexArray &va) {
-	GLfloat vertices[] = {
-		100.0f, 100.0f, 0.0f, 0.0f, 0.0f,
-		200.0f, 100.0f, 0.0f, 1.0f, 0.0f,
-		200.0f, 200.0f, 0.0f, 1.0f, 1.0f,
-		100.0f, 200.0f, 0.0f, 0.0f, 1.0f
-	};
+	float vertices[] = {
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
-	unsigned int indices[] = {
-		0, 1, 2,   // first triangle
-		2, 3, 0    // second triangle
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
 	GLCall(glEnable(GL_BLEND));
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-	vb = new VertexBuffer(vertices, 4 * 5 * sizeof(float));
-	ib = new IndexBuffer(indices, 6);
+	vb = new VertexBuffer(vertices, 36 * 5 * sizeof(float));
 	VertexBufferLayout layout;
 	layout.Push<float>(3);
 	layout.Push<float>(2);
@@ -122,12 +153,11 @@ int main() {
 
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
+	glEnable(GL_DEPTH_TEST);
+
 	VertexArray va;
 
 	CreateTriangle(va);
-	glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-	glm::mat4 view = glm::mat4(1.0f);
-	
 
 	Shader shader("res/shaders/Basic.shader");
 	shader.Bind();
@@ -144,7 +174,6 @@ int main() {
 	va.Unbind();
 	shader.Unbind();
 	vb->Unbind();
-	ib->Unbind();
 
 	Renderer renderer;
 	InputManager input(window);
@@ -166,13 +195,25 @@ int main() {
 	glm::vec3 translationA(200, 200, 0);
 	float mixVal = 1;
 
-	glm::vec2 localSize(100.0f, 100.0f);
-	glm::vec2 scaledSize = localSize * glm::vec2(scaleA, scaleA);
-	glm::vec2 pos(translationA.x, translationA.y);
-	glm::vec2 halfSize = scaledSize * 0.5f;
-
 	float lastime = 0.0f;
-	glm::vec2 velocity = glm::normalize(glm::vec2(rand() % 2 - 0.5f, rand() % 2 - 0.5f)) * 150.0f;
+
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
+	float cameraFov = 30.0f;
+	float maxFov = 70.0f;
+	float minFov = 10.0f;
+	float zCame = -3.0f;
 
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(window)) {
@@ -190,46 +231,41 @@ int main() {
 		float currentTime = glfwGetTime();
 		float deltaTime = currentTime - lastime;
 		lastime = currentTime;
-
-		scaledSize = localSize * glm::vec2(scaleA, scaleA);
-		pos.x = translationA.x;
-		pos.y = translationA.y;
-
-		halfSize = scaledSize * 0.5f;
-
-		float left = pos.x - halfSize.x;
-		float right = pos.x + halfSize.x;
-		float bottom = pos.y - halfSize.y;
-		float top = pos.y + halfSize.y;
-		
-		if (left <= 0 || right >= WIDTH) velocity.x *= -1.0f;
-		if (bottom <= 0 || top >= HEIGHT) velocity.y *= -1.0f;
-
-		translationA += glm::vec3(velocity, 0.0f) * deltaTime;
 		
 		{
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, translationA);
-			model = glm::rotate(model, glm::radians(rotationA), glm::vec3(0.0f, 0.0f, 1.0f));
-			model = glm::scale(model, glm::vec3(scaleA, scaleA, 1.0f));
-			model = glm::translate(model, glm::vec3(-150.0f, -150.0f, 0.0f));
-			glm::mat4 mvp = proj * view * model;
-			shader.Bind();
-			shader.SetUniform4f("u_Color", 1.0f, .5f, .3f, 1.0f);
-			shader.SetUniformMat4f("u_MVP", mvp);
-			shader.SetUniform1f("mixVal", mixVal);
+			glm::mat4 proj = glm::perspective(glm::radians(cameraFov), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+			glm::mat4 view = glm::mat4(1.0f);
+			view = glm::translate(view, glm::vec3(0.0f, 0.0f, zCame)); ;
 
-			// bind textures on corresponding texture units
-			texture1.Bind(0);
-			texture2.Bind(1);
+			for (unsigned int i = 0; i < 10; i++)
+			{
+				glm::mat4 model = glm::mat4(1.0f);
+				model = glm::translate(model, cubePositions[i]);
+				float angle = 20.0f * i;
+				if (i == 0) {
+					model = glm::rotate(model, glm::radians(50.0f) * (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
+				}
+				else {
+					model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+				}
+				glm::mat4 mvp = proj * view * model;
 
-			renderer.Draw(va, *ib, shader);
+				shader.Bind();
+				shader.SetUniform4f("u_Color", 1.0f, .5f, .3f, 1.0f);
+				shader.SetUniformMat4f("u_MVP", mvp);
+				shader.SetUniform1f("mixVal", mixVal);
+
+				texture1.Bind(0);
+				texture2.Bind(1);
+
+				renderer.DrawArray(va, shader, 36, 0);
+			}
 		}
 
-		translationA.x += input.GetAxisX(.5f);
-		translationA.y += input.GetAxisY(.5f);
-		scaleA = input.AdjustScale(scaleA);
-		rotationA = input.AdjustRocation(rotationA);
+		//translationA.x += input.GetAxisX(.5f);
+		//translationA.y += input.GetAxisY(.5f);
+		//scaleA = input.AdjustScale(scaleA);
+		//rotationA = input.AdjustRocation(rotationA);
 
 		{
 			static float f = 0.0f;
@@ -237,10 +273,9 @@ int main() {
 
 			ImGui::Begin("Inspector:");
 
-			ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 960.0f);
-			ImGui::SliderFloat("Scale A", &scaleA, min_scaleA, max_scaleA);
-			ImGui::SliderFloat("Rotation A", &rotationA, -360.0f, 360.0f);
-			ImGui::SliderFloat("Mix Value: ", &mixVal, 0.0f, 1.0f);
+			//ImGui::SliderFloat3("FOV", &translationA.x, 0.0f, 960.0f);
+			ImGui::SliderFloat("FOV", &cameraFov, minFov, maxFov);
+			ImGui::SliderFloat("Z Cam", &zCame, -2.0f, -50.0f);
 
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::End();
